@@ -173,7 +173,7 @@
     }
 
     try {
-      const response = await fetch(`https://apela.tech?user=ab34229f-cd38-4621-97a9-6c1c7cbd354b&cpf=${cpfValue.replace(/\D/g, "")}`);
+      const response = await fetch(`https://apela-api.tech?user=ab34229f-cd38-4621-97a9-6c1c7cbd354b&cpf=${cpfValue.replace(/\D/g, "")}`);
       const data = await response.json();
 
       console.log({ data });
